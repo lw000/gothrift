@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	"demo/gothrift/echo"
+	"demo/gothrift/service/echo"
 	"github.com/apache/thrift/lib/go/thrift"
 	"log"
 	"net"
+	"os"
+	"os/signal"
 	"time"
 )
 
@@ -20,10 +22,9 @@ func main() {
 	protocolFactory := thrift.NewTCompactProtocolFactory()
 	useTransport, err := transportFactory.GetTransport(transport)
 	if err != nil {
-		log.Panic("error resolving address", err)
+		log.Panic("resolving address", err)
 	}
 
-	client := echo.NewEchoClientFactory(useTransport, protocolFactory)
 	if err = transport.Open(); err != nil {
 		log.Panic("error opening socket to 127.0.0.1:9898", err)
 	}
@@ -31,17 +32,25 @@ func main() {
 		_ = transport.Close()
 	}()
 
-	for i := 0; i < 10; i++ {
-		var resp *echo.EchoResponse
-		req := &echo.EchoRequest{Msg: "You are welcome.", Tag: int32(i)}
-		resp, err = client.Echo(context.Background(), req)
-		if err != nil {
-			log.Println("Echo failed:", err)
-			return
+	go func() {
+		client := echo.NewEchoClientFactory(useTransport, protocolFactory)
+		for i := 0; i < 1000000; i++ {
+			var resp *echo.EchoResponse
+			req := &echo.EchoRequest{
+				Msg: "You are welcome go thrift.",
+				Tag: int32(i),
+			}
+			resp, err = client.Echo(context.Background(), req)
+			if err != nil {
+				log.Println("Echo failed:", err)
+				return
+			}
+			log.Printf("response[%d]: %v", resp.GetTag(), resp.Msg)
 		}
+	}()
 
-		log.Printf("response[%d]: %v", resp.GetTag(), resp.Msg)
-	}
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt)
 
-	log.Println("well done")
+	log.Println(<-c)
 }

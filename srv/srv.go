@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"demo/gothrift/echo"
-	"log"
-
-	// "git.apache.org/thrift.git/lib/go/thrift"
+	"demo/gothrift/service/echo"
 	"github.com/apache/thrift/lib/go/thrift"
+	"log"
 )
 
 type EchoServerImp struct {
@@ -35,5 +33,8 @@ func main() {
 		thrift.NewTCompactProtocolFactory(),
 	)
 
-	log.Panic(server.Serve())
+	err = server.Serve()
+	if err != nil {
+		log.Panic(err)
+	}
 }
