@@ -21,7 +21,7 @@ struct AckLogin {
 	2: string message;
 }
 
-service TapiService {
+service Tapi {
 		AckLogin login(1: ReqLogin req);
     	AckRegist regist(1: ReqRegist req);
 }

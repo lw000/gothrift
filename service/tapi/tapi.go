@@ -619,7 +619,7 @@ func (p *AckLogin) String() string {
 	return fmt.Sprintf("AckLogin(%+v)", *p)
 }
 
-type TapiService interface {
+type Tapi interface {
 	// Parameters:
 	//  - Req
 	Login(ctx context.Context, req *ReqLogin) (r *AckLogin, err error)
@@ -628,38 +628,38 @@ type TapiService interface {
 	Regist(ctx context.Context, req *ReqRegist) (r *AckRegist, err error)
 }
 
-type TapiServiceClient struct {
+type TapiClient struct {
 	c thrift.TClient
 }
 
-func NewTapiServiceClientFactory(t thrift.TTransport, f thrift.TProtocolFactory) *TapiServiceClient {
-	return &TapiServiceClient{
+func NewTapiClientFactory(t thrift.TTransport, f thrift.TProtocolFactory) *TapiClient {
+	return &TapiClient{
 		c: thrift.NewTStandardClient(f.GetProtocol(t), f.GetProtocol(t)),
 	}
 }
 
-func NewTapiServiceClientProtocol(t thrift.TTransport, iprot thrift.TProtocol, oprot thrift.TProtocol) *TapiServiceClient {
-	return &TapiServiceClient{
+func NewTapiClientProtocol(t thrift.TTransport, iprot thrift.TProtocol, oprot thrift.TProtocol) *TapiClient {
+	return &TapiClient{
 		c: thrift.NewTStandardClient(iprot, oprot),
 	}
 }
 
-func NewTapiServiceClient(c thrift.TClient) *TapiServiceClient {
-	return &TapiServiceClient{
+func NewTapiClient(c thrift.TClient) *TapiClient {
+	return &TapiClient{
 		c: c,
 	}
 }
 
-func (p *TapiServiceClient) Client_() thrift.TClient {
+func (p *TapiClient) Client_() thrift.TClient {
 	return p.c
 }
 
 // Parameters:
 //  - Req
-func (p *TapiServiceClient) Login(ctx context.Context, req *ReqLogin) (r *AckLogin, err error) {
-	var _args0 TapiServiceLoginArgs
+func (p *TapiClient) Login(ctx context.Context, req *ReqLogin) (r *AckLogin, err error) {
+	var _args0 TapiLoginArgs
 	_args0.Req = req
-	var _result1 TapiServiceLoginResult
+	var _result1 TapiLoginResult
 	if err = p.Client_().Call(ctx, "login", &_args0, &_result1); err != nil {
 		return
 	}
@@ -668,43 +668,43 @@ func (p *TapiServiceClient) Login(ctx context.Context, req *ReqLogin) (r *AckLog
 
 // Parameters:
 //  - Req
-func (p *TapiServiceClient) Regist(ctx context.Context, req *ReqRegist) (r *AckRegist, err error) {
-	var _args2 TapiServiceRegistArgs
+func (p *TapiClient) Regist(ctx context.Context, req *ReqRegist) (r *AckRegist, err error) {
+	var _args2 TapiRegistArgs
 	_args2.Req = req
-	var _result3 TapiServiceRegistResult
+	var _result3 TapiRegistResult
 	if err = p.Client_().Call(ctx, "regist", &_args2, &_result3); err != nil {
 		return
 	}
 	return _result3.GetSuccess(), nil
 }
 
-type TapiServiceProcessor struct {
+type TapiProcessor struct {
 	processorMap map[string]thrift.TProcessorFunction
-	handler      TapiService
+	handler      Tapi
 }
 
-func (p *TapiServiceProcessor) AddToProcessorMap(key string, processor thrift.TProcessorFunction) {
+func (p *TapiProcessor) AddToProcessorMap(key string, processor thrift.TProcessorFunction) {
 	p.processorMap[key] = processor
 }
 
-func (p *TapiServiceProcessor) GetProcessorFunction(key string) (processor thrift.TProcessorFunction, ok bool) {
+func (p *TapiProcessor) GetProcessorFunction(key string) (processor thrift.TProcessorFunction, ok bool) {
 	processor, ok = p.processorMap[key]
 	return processor, ok
 }
 
-func (p *TapiServiceProcessor) ProcessorMap() map[string]thrift.TProcessorFunction {
+func (p *TapiProcessor) ProcessorMap() map[string]thrift.TProcessorFunction {
 	return p.processorMap
 }
 
-func NewTapiServiceProcessor(handler TapiService) *TapiServiceProcessor {
+func NewTapiProcessor(handler Tapi) *TapiProcessor {
 
-	self4 := &TapiServiceProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
-	self4.processorMap["login"] = &tapiServiceProcessorLogin{handler: handler}
-	self4.processorMap["regist"] = &tapiServiceProcessorRegist{handler: handler}
+	self4 := &TapiProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
+	self4.processorMap["login"] = &tapiProcessorLogin{handler: handler}
+	self4.processorMap["regist"] = &tapiProcessorRegist{handler: handler}
 	return self4
 }
 
-func (p *TapiServiceProcessor) Process(ctx context.Context, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+func (p *TapiProcessor) Process(ctx context.Context, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
 	name, _, seqId, err := iprot.ReadMessageBegin()
 	if err != nil {
 		return false, err
@@ -723,12 +723,12 @@ func (p *TapiServiceProcessor) Process(ctx context.Context, iprot, oprot thrift.
 
 }
 
-type tapiServiceProcessorLogin struct {
-	handler TapiService
+type tapiProcessorLogin struct {
+	handler Tapi
 }
 
-func (p *tapiServiceProcessorLogin) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := TapiServiceLoginArgs{}
+func (p *tapiProcessorLogin) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := TapiLoginArgs{}
 	if err = args.Read(iprot); err != nil {
 		iprot.ReadMessageEnd()
 		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
@@ -740,7 +740,7 @@ func (p *tapiServiceProcessorLogin) Process(ctx context.Context, seqId int32, ip
 	}
 
 	iprot.ReadMessageEnd()
-	result := TapiServiceLoginResult{}
+	result := TapiLoginResult{}
 	var retval *AckLogin
 	var err2 error
 	if retval, err2 = p.handler.Login(ctx, args.Req); err2 != nil {
@@ -771,12 +771,12 @@ func (p *tapiServiceProcessorLogin) Process(ctx context.Context, seqId int32, ip
 	return true, err
 }
 
-type tapiServiceProcessorRegist struct {
-	handler TapiService
+type tapiProcessorRegist struct {
+	handler Tapi
 }
 
-func (p *tapiServiceProcessorRegist) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-	args := TapiServiceRegistArgs{}
+func (p *tapiProcessorRegist) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := TapiRegistArgs{}
 	if err = args.Read(iprot); err != nil {
 		iprot.ReadMessageEnd()
 		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
@@ -788,7 +788,7 @@ func (p *tapiServiceProcessorRegist) Process(ctx context.Context, seqId int32, i
 	}
 
 	iprot.ReadMessageEnd()
-	result := TapiServiceRegistResult{}
+	result := TapiRegistResult{}
 	var retval *AckRegist
 	var err2 error
 	if retval, err2 = p.handler.Regist(ctx, args.Req); err2 != nil {
@@ -823,27 +823,27 @@ func (p *tapiServiceProcessorRegist) Process(ctx context.Context, seqId int32, i
 
 // Attributes:
 //  - Req
-type TapiServiceLoginArgs struct {
+type TapiLoginArgs struct {
 	Req *ReqLogin `thrift:"req,1" db:"req" json:"req"`
 }
 
-func NewTapiServiceLoginArgs() *TapiServiceLoginArgs {
-	return &TapiServiceLoginArgs{}
+func NewTapiLoginArgs() *TapiLoginArgs {
+	return &TapiLoginArgs{}
 }
 
-var TapiServiceLoginArgs_Req_DEFAULT *ReqLogin
+var TapiLoginArgs_Req_DEFAULT *ReqLogin
 
-func (p *TapiServiceLoginArgs) GetReq() *ReqLogin {
+func (p *TapiLoginArgs) GetReq() *ReqLogin {
 	if !p.IsSetReq() {
-		return TapiServiceLoginArgs_Req_DEFAULT
+		return TapiLoginArgs_Req_DEFAULT
 	}
 	return p.Req
 }
-func (p *TapiServiceLoginArgs) IsSetReq() bool {
+func (p *TapiLoginArgs) IsSetReq() bool {
 	return p.Req != nil
 }
 
-func (p *TapiServiceLoginArgs) Read(iprot thrift.TProtocol) error {
+func (p *TapiLoginArgs) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
@@ -882,7 +882,7 @@ func (p *TapiServiceLoginArgs) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceLoginArgs) ReadField1(iprot thrift.TProtocol) error {
+func (p *TapiLoginArgs) ReadField1(iprot thrift.TProtocol) error {
 	p.Req = &ReqLogin{}
 	if err := p.Req.Read(iprot); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T error reading struct: ", p.Req), err)
@@ -890,7 +890,7 @@ func (p *TapiServiceLoginArgs) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceLoginArgs) Write(oprot thrift.TProtocol) error {
+func (p *TapiLoginArgs) Write(oprot thrift.TProtocol) error {
 	if err := oprot.WriteStructBegin("login_args"); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
@@ -908,7 +908,7 @@ func (p *TapiServiceLoginArgs) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceLoginArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TapiLoginArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:req: ", p), err)
 	}
@@ -921,36 +921,36 @@ func (p *TapiServiceLoginArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	return err
 }
 
-func (p *TapiServiceLoginArgs) String() string {
+func (p *TapiLoginArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("TapiServiceLoginArgs(%+v)", *p)
+	return fmt.Sprintf("TapiLoginArgs(%+v)", *p)
 }
 
 // Attributes:
 //  - Success
-type TapiServiceLoginResult struct {
+type TapiLoginResult struct {
 	Success *AckLogin `thrift:"success,0" db:"success" json:"success,omitempty"`
 }
 
-func NewTapiServiceLoginResult() *TapiServiceLoginResult {
-	return &TapiServiceLoginResult{}
+func NewTapiLoginResult() *TapiLoginResult {
+	return &TapiLoginResult{}
 }
 
-var TapiServiceLoginResult_Success_DEFAULT *AckLogin
+var TapiLoginResult_Success_DEFAULT *AckLogin
 
-func (p *TapiServiceLoginResult) GetSuccess() *AckLogin {
+func (p *TapiLoginResult) GetSuccess() *AckLogin {
 	if !p.IsSetSuccess() {
-		return TapiServiceLoginResult_Success_DEFAULT
+		return TapiLoginResult_Success_DEFAULT
 	}
 	return p.Success
 }
-func (p *TapiServiceLoginResult) IsSetSuccess() bool {
+func (p *TapiLoginResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *TapiServiceLoginResult) Read(iprot thrift.TProtocol) error {
+func (p *TapiLoginResult) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
@@ -989,7 +989,7 @@ func (p *TapiServiceLoginResult) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceLoginResult) ReadField0(iprot thrift.TProtocol) error {
+func (p *TapiLoginResult) ReadField0(iprot thrift.TProtocol) error {
 	p.Success = &AckLogin{}
 	if err := p.Success.Read(iprot); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T error reading struct: ", p.Success), err)
@@ -997,7 +997,7 @@ func (p *TapiServiceLoginResult) ReadField0(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceLoginResult) Write(oprot thrift.TProtocol) error {
+func (p *TapiLoginResult) Write(oprot thrift.TProtocol) error {
 	if err := oprot.WriteStructBegin("login_result"); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
@@ -1015,7 +1015,7 @@ func (p *TapiServiceLoginResult) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceLoginResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *TapiLoginResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
 		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err)
@@ -1030,36 +1030,36 @@ func (p *TapiServiceLoginResult) writeField0(oprot thrift.TProtocol) (err error)
 	return err
 }
 
-func (p *TapiServiceLoginResult) String() string {
+func (p *TapiLoginResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("TapiServiceLoginResult(%+v)", *p)
+	return fmt.Sprintf("TapiLoginResult(%+v)", *p)
 }
 
 // Attributes:
 //  - Req
-type TapiServiceRegistArgs struct {
+type TapiRegistArgs struct {
 	Req *ReqRegist `thrift:"req,1" db:"req" json:"req"`
 }
 
-func NewTapiServiceRegistArgs() *TapiServiceRegistArgs {
-	return &TapiServiceRegistArgs{}
+func NewTapiRegistArgs() *TapiRegistArgs {
+	return &TapiRegistArgs{}
 }
 
-var TapiServiceRegistArgs_Req_DEFAULT *ReqRegist
+var TapiRegistArgs_Req_DEFAULT *ReqRegist
 
-func (p *TapiServiceRegistArgs) GetReq() *ReqRegist {
+func (p *TapiRegistArgs) GetReq() *ReqRegist {
 	if !p.IsSetReq() {
-		return TapiServiceRegistArgs_Req_DEFAULT
+		return TapiRegistArgs_Req_DEFAULT
 	}
 	return p.Req
 }
-func (p *TapiServiceRegistArgs) IsSetReq() bool {
+func (p *TapiRegistArgs) IsSetReq() bool {
 	return p.Req != nil
 }
 
-func (p *TapiServiceRegistArgs) Read(iprot thrift.TProtocol) error {
+func (p *TapiRegistArgs) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
@@ -1098,7 +1098,7 @@ func (p *TapiServiceRegistArgs) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceRegistArgs) ReadField1(iprot thrift.TProtocol) error {
+func (p *TapiRegistArgs) ReadField1(iprot thrift.TProtocol) error {
 	p.Req = &ReqRegist{}
 	if err := p.Req.Read(iprot); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T error reading struct: ", p.Req), err)
@@ -1106,7 +1106,7 @@ func (p *TapiServiceRegistArgs) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceRegistArgs) Write(oprot thrift.TProtocol) error {
+func (p *TapiRegistArgs) Write(oprot thrift.TProtocol) error {
 	if err := oprot.WriteStructBegin("regist_args"); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
@@ -1124,7 +1124,7 @@ func (p *TapiServiceRegistArgs) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceRegistArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *TapiRegistArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err := oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:req: ", p), err)
 	}
@@ -1137,36 +1137,36 @@ func (p *TapiServiceRegistArgs) writeField1(oprot thrift.TProtocol) (err error) 
 	return err
 }
 
-func (p *TapiServiceRegistArgs) String() string {
+func (p *TapiRegistArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("TapiServiceRegistArgs(%+v)", *p)
+	return fmt.Sprintf("TapiRegistArgs(%+v)", *p)
 }
 
 // Attributes:
 //  - Success
-type TapiServiceRegistResult struct {
+type TapiRegistResult struct {
 	Success *AckRegist `thrift:"success,0" db:"success" json:"success,omitempty"`
 }
 
-func NewTapiServiceRegistResult() *TapiServiceRegistResult {
-	return &TapiServiceRegistResult{}
+func NewTapiRegistResult() *TapiRegistResult {
+	return &TapiRegistResult{}
 }
 
-var TapiServiceRegistResult_Success_DEFAULT *AckRegist
+var TapiRegistResult_Success_DEFAULT *AckRegist
 
-func (p *TapiServiceRegistResult) GetSuccess() *AckRegist {
+func (p *TapiRegistResult) GetSuccess() *AckRegist {
 	if !p.IsSetSuccess() {
-		return TapiServiceRegistResult_Success_DEFAULT
+		return TapiRegistResult_Success_DEFAULT
 	}
 	return p.Success
 }
-func (p *TapiServiceRegistResult) IsSetSuccess() bool {
+func (p *TapiRegistResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *TapiServiceRegistResult) Read(iprot thrift.TProtocol) error {
+func (p *TapiRegistResult) Read(iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
@@ -1205,7 +1205,7 @@ func (p *TapiServiceRegistResult) Read(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceRegistResult) ReadField0(iprot thrift.TProtocol) error {
+func (p *TapiRegistResult) ReadField0(iprot thrift.TProtocol) error {
 	p.Success = &AckRegist{}
 	if err := p.Success.Read(iprot); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T error reading struct: ", p.Success), err)
@@ -1213,7 +1213,7 @@ func (p *TapiServiceRegistResult) ReadField0(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceRegistResult) Write(oprot thrift.TProtocol) error {
+func (p *TapiRegistResult) Write(oprot thrift.TProtocol) error {
 	if err := oprot.WriteStructBegin("regist_result"); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
@@ -1231,7 +1231,7 @@ func (p *TapiServiceRegistResult) Write(oprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *TapiServiceRegistResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *TapiRegistResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
 		if err := oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err)
@@ -1246,9 +1246,9 @@ func (p *TapiServiceRegistResult) writeField0(oprot thrift.TProtocol) (err error
 	return err
 }
 
-func (p *TapiServiceRegistResult) String() string {
+func (p *TapiRegistResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("TapiServiceRegistResult(%+v)", *p)
+	return fmt.Sprintf("TapiRegistResult(%+v)", *p)
 }
