@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"demo/gothrift/service/echo"
-	"demo/gothrift/service/tapi"
+	"demo/gothrift/rpc/echo"
+	"demo/gothrift/rpc/tapi"
 	"github.com/apache/thrift/lib/go/thrift"
 	"log"
 )

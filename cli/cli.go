@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
-	"demo/gothrift/service/echo"
-	"demo/gothrift/service/tapi"
+	"demo/gothrift/rpc/echo"
+	"demo/gothrift/rpc/tapi"
 	"github.com/apache/thrift/lib/go/thrift"
 	"log"
 	"net"
+	"os"
+	"os/signal"
 	"time"
 )
 
@@ -75,11 +77,11 @@ func runEcho() {
 	echoProtocol := thrift.NewTMultiplexedProtocol(protocol, "echo")
 	standardClient := thrift.NewTStandardClient(echoProtocol, echoProtocol)
 	client := echo.NewEchoClient(standardClient)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1; i++ {
 		var resp *echo.EchoResponse
 		req := &echo.EchoRequest{
 			Msg: "You are welcome go thrift.",
-			Tag: int32(0),
+			Tag: int32(i),
 		}
 		resp, err = client.Echo(ctx, req)
 		if err != nil {
@@ -141,10 +143,13 @@ func runTapi() {
 }
 
 func main() {
-	runEcho()
-	runTapi()
+	for i := 0; i < 1; i++ {
+		go runEcho()
+	}
 
-	// c := make(chan os.Signal)
-	// signal.Notify(c, os.Interrupt)
-	// log.Println(<-c)
+	go runTapi()
+
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt)
+	log.Println(<-c)
 }
